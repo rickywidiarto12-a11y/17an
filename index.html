@@ -350,6 +350,7 @@
         <div class="field"><label>Alamat / Wilayah</label><input type="text" id="info-alamat" placeholder="Contoh: RT 05 RW 02, Kel. Sukamaju" class="info-field"></div>
         <div class="field"><label>Ketua Panitia</label><input type="text" id="info-ketua" placeholder="Nama ketua panitia" class="info-field"></div>
         <div class="field"><label>Bendahara</label><input type="text" id="info-bendahara" placeholder="Nama bendahara" class="info-field"></div>
+        <div class="field"><label>Ketua RT/RW (Mengetahui)</label><input type="text" id="info-ketua-rt" placeholder="Nama Ketua RT/RW" class="info-field"></div>
         <div class="field"><label>Tempat Laporan</label><input type="text" id="info-tempat" placeholder="Contoh: Jakarta" class="info-field"></div>
         <div class="field"><label>Tanggal Laporan</label><input type="date" id="info-tanggal" class="info-field"></div>
       </div>
@@ -385,7 +386,7 @@
 
 <script>
 let state = {
-  eventInfo:{kegiatan:'', alamat:'', ketua:'', bendahara:'', tempat:'', tanggal:''},
+  eventInfo:{kegiatan:'', alamat:'', ketua:'', bendahara:'', ketuaRt:'', tempat:'', tanggal:''},
   kategori: [],
   pemasukan: [],
   pengeluaran: []
@@ -489,7 +490,7 @@ async function createNewEvent(){
 
   currentEventCode = code;
   state = {
-    eventInfo:{kegiatan:'', alamat:'', ketua:'', bendahara:'', tempat:'', tanggal:''},
+    eventInfo:{kegiatan:'', alamat:'', ketua:'', bendahara:'', ketuaRt:'', tempat:'', tanggal:''},
     kategori: [], pemasukan: [], pengeluaran: []
   };
   try{
@@ -552,6 +553,7 @@ function syncInfoFromFields(){
     alamat: document.getElementById('info-alamat').value,
     ketua: document.getElementById('info-ketua').value,
     bendahara: document.getElementById('info-bendahara').value,
+    ketuaRt: document.getElementById('info-ketua-rt').value,
     tempat: document.getElementById('info-tempat').value,
     tanggal: document.getElementById('info-tanggal').value,
   };
@@ -562,6 +564,7 @@ function hydrateInfoFields(){
   document.getElementById('info-alamat').value = i.alamat||'';
   document.getElementById('info-ketua').value = i.ketua||'';
   document.getElementById('info-bendahara').value = i.bendahara||'';
+  document.getElementById('info-ketua-rt').value = i.ketuaRt||'';
   document.getElementById('info-tempat').value = i.tempat||'';
   document.getElementById('info-tanggal').value = i.tanggal||'';
 }
@@ -880,15 +883,27 @@ function exportPDF(){
     doc.setFont('helvetica','normal'); doc.text(val, pageW-margin, y, {align:'right'});
     y += 17;
   });
-  y += 26;
+  y += 8;
+
+  // Keterangan saldo akhir
+  checkPage(60);
+  doc.setFont('helvetica','italic'); doc.setFontSize(9.5);
+  const saldoNote = t.saldo >= 0
+    ? `Sisa saldo sebesar ${rupiah(t.saldo)} disimpan sebagai kas untuk kegiatan warga berikutnya.`
+    : `Terdapat kekurangan dana sebesar ${rupiah(Math.abs(t.saldo))} yang perlu ditutup melalui iuran tambahan atau kas warga.`;
+  const noteLines = doc.splitTextToSize(saldoNote, pageW - margin*2);
+  doc.text(noteLines, margin, y);
+  y += noteLines.length*13 + 20;
 
   // Tanda tangan
-  checkPage(140);
+  checkPage(200);
   const tempat = info.tempat || '.................';
   const tgl = info.tanggal ? fmtDate(info.tanggal) : '.................';
-  doc.setFontSize(10.5);
+  doc.setFont('helvetica','normal'); doc.setFontSize(10.5);
   doc.text(`${tempat}, ${tgl}`, pageW-margin, y, {align:'right'});
-  y += 50;
+  y += 26;
+
+  // Blok Ketua Panitia & Bendahara
   const colL = margin+40, colR = pageW-margin-140;
   doc.text('Ketua Panitia', colL, y, {align:'center'});
   doc.text('Bendahara', colR, y, {align:'center'});
@@ -899,6 +914,20 @@ function exportPDF(){
   doc.setFont('helvetica','bold');
   doc.text(info.ketua || '(...........................)', colL, y, {align:'center'});
   doc.text(info.bendahara || '(...........................)', colR, y, {align:'center'});
+  y += 40;
+
+  // Blok "Mengetahui" - Ketua RT/RW (saksi/mengetahui, di tengah, di bawah)
+  checkPage(140);
+  doc.setFont('helvetica','normal'); doc.setFontSize(10.5);
+  const centerX = pageW/2;
+  doc.text('Mengetahui,', centerX, y, {align:'center'});
+  y += 14;
+  doc.text('Ketua RT/RW', centerX, y, {align:'center'});
+  y += 55;
+  doc.line(centerX-70, y, centerX+70, y);
+  y += 16;
+  doc.setFont('helvetica','bold');
+  doc.text(info.ketuaRt || '(...........................)', centerX, y, {align:'center'});
 
   function checkPage(need){
     need = need || 200;
