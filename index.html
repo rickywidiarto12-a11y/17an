@@ -780,21 +780,21 @@ function exportPDF(){
   const t = totals();
   const info = state.eventInfo;
   const pageW = doc.internal.pageSize.getWidth();
-  const margin = 48;
-  let y = 56;
+  const margin = 42;
+  let y = 40;
 
-  doc.setFont('helvetica','bold'); doc.setFontSize(15);
+  doc.setFont('helvetica','bold'); doc.setFontSize(13.5);
   doc.text('LAPORAN PERTANGGUNGJAWABAN KEUANGAN', pageW/2, y, {align:'center'});
-  y += 20;
-  doc.setFontSize(11); doc.setFont('helvetica','normal');
+  y += 15;
+  doc.setFontSize(9.5); doc.setFont('helvetica','normal');
   doc.text('Kegiatan Peringatan Hari Ulang Tahun Kemerdekaan Republik Indonesia', pageW/2, y, {align:'center'});
-  y += 26;
+  y += 14;
 
-  doc.setDrawColor(163,34,43); doc.setLineWidth(1.2);
+  doc.setDrawColor(163,34,43); doc.setLineWidth(1);
   doc.line(margin, y, pageW-margin, y);
-  y += 22;
+  y += 16;
 
-  doc.setFontSize(10.5);
+  doc.setFontSize(9);
   const infoLines = [
     ['Nama Kegiatan', info.kegiatan || '-'],
     ['Wilayah', info.alamat || '-'],
@@ -803,56 +803,56 @@ function exportPDF(){
   ];
   infoLines.forEach(([label,val])=>{
     doc.setFont('helvetica','bold'); doc.text(label+' ', margin, y);
-    doc.setFont('helvetica','normal'); doc.text(': '+val, margin+110, y);
-    y += 16;
+    doc.setFont('helvetica','normal'); doc.text(': '+val, margin+95, y);
+    y += 12;
   });
-  y += 10;
+  y += 6;
 
   // Ringkasan anggaran vs realisasi
-  doc.setFont('helvetica','bold'); doc.setFontSize(12);
+  doc.setFont('helvetica','bold'); doc.setFontSize(10.5);
   doc.text('1. Ringkasan Anggaran dan Realisasi', margin, y);
-  y += 8;
+  y += 5;
   const katData = realisasiPerKategori();
   doc.autoTable({
-    startY: y+8,
+    startY: y+5,
     margin:{left:margin,right:margin},
     head:[['Kategori','Dianggarkan','Realisasi','Sisa']],
     body: katData.length ? katData.map(k=>[k.nama, rupiah(k.jumlah), rupiah(k.real), rupiah(k.sisa)])
       : [['Tidak ada data','','','']],
-    styles:{font:'helvetica', fontSize:9.5, cellPadding:6},
+    styles:{font:'helvetica', fontSize:8, cellPadding:3},
     headStyles:{fillColor:[163,34,43], textColor:255},
     columnStyles:{1:{halign:'right'},2:{halign:'right'},3:{halign:'right'}}
   });
-  y = doc.lastAutoTable.finalY + 26;
+  y = doc.lastAutoTable.finalY + 14;
 
   // Pemasukan
   checkPage();
-  doc.setFont('helvetica','bold'); doc.setFontSize(12);
+  doc.setFont('helvetica','bold'); doc.setFontSize(10.5);
   doc.text('2. Rincian Pemasukan', margin, y);
-  y += 8;
+  y += 5;
   const pemasukanSorted = [...state.pemasukan].sort((a,b)=>a.tanggal.localeCompare(b.tanggal));
   doc.autoTable({
-    startY: y+8,
+    startY: y+5,
     margin:{left:margin,right:margin},
     head:[['Tanggal','Sumber / Keterangan','Jumlah']],
     body: pemasukanSorted.length ? pemasukanSorted.map(p=>[fmtDate(p.tanggal), p.sumber, rupiah(p.jumlah)])
       : [['-','Tidak ada data','-']],
     foot:[['','Total', rupiah(t.totalPemasukan)]],
-    styles:{font:'helvetica', fontSize:9.5, cellPadding:6},
+    styles:{font:'helvetica', fontSize:8, cellPadding:3},
     headStyles:{fillColor:[46,107,79], textColor:255},
     footStyles:{fillColor:[240,240,240], textColor:20, fontStyle:'bold'},
     columnStyles:{2:{halign:'right'}}
   });
-  y = doc.lastAutoTable.finalY + 26;
+  y = doc.lastAutoTable.finalY + 14;
 
   // Pengeluaran
   checkPage();
-  doc.setFont('helvetica','bold'); doc.setFontSize(12);
+  doc.setFont('helvetica','bold'); doc.setFontSize(10.5);
   doc.text('3. Rincian Pengeluaran', margin, y);
-  y += 8;
+  y += 5;
   const pengeluaranSorted = [...state.pengeluaran].sort((a,b)=>a.tanggal.localeCompare(b.tanggal));
   doc.autoTable({
-    startY: y+8,
+    startY: y+5,
     margin:{left:margin,right:margin},
     head:[['Tanggal','Kategori','Keterangan','Jumlah']],
     body: pengeluaranSorted.length ? pengeluaranSorted.map(p=>{
@@ -860,19 +860,19 @@ function exportPDF(){
       return [fmtDate(p.tanggal), kat?kat.nama:'-', p.ket, rupiah(p.jumlah)];
     }) : [['-','-','Tidak ada data','-']],
     foot:[['','','Total', rupiah(t.totalPengeluaran)]],
-    styles:{font:'helvetica', fontSize:9.5, cellPadding:6},
+    styles:{font:'helvetica', fontSize:8, cellPadding:3},
     headStyles:{fillColor:[163,34,43], textColor:255},
     footStyles:{fillColor:[240,240,240], textColor:20, fontStyle:'bold'},
     columnStyles:{3:{halign:'right'}}
   });
-  y = doc.lastAutoTable.finalY + 30;
+  y = doc.lastAutoTable.finalY + 16;
 
   // Ringkasan akhir
-  checkPage(120);
-  doc.setFont('helvetica','bold'); doc.setFontSize(12);
+  checkPage(90);
+  doc.setFont('helvetica','bold'); doc.setFontSize(10.5);
   doc.text('4. Ringkasan Akhir', margin, y);
-  y += 20;
-  doc.setFontSize(10.5); doc.setFont('helvetica','normal');
+  y += 14;
+  doc.setFontSize(9); doc.setFont('helvetica','normal');
   const finalLines = [
     ['Total Pemasukan', rupiah(t.totalPemasukan)],
     ['Total Pengeluaran', rupiah(t.totalPengeluaran)],
@@ -881,58 +881,58 @@ function exportPDF(){
   finalLines.forEach(([label,val])=>{
     doc.setFont('helvetica','bold'); doc.text(label, margin, y);
     doc.setFont('helvetica','normal'); doc.text(val, pageW-margin, y, {align:'right'});
-    y += 17;
+    y += 13;
   });
-  y += 8;
+  y += 4;
 
   // Keterangan saldo akhir
-  checkPage(60);
-  doc.setFont('helvetica','italic'); doc.setFontSize(9.5);
+  checkPage(40);
+  doc.setFont('helvetica','italic'); doc.setFontSize(8);
   const saldoNote = t.saldo >= 0
     ? `Sisa saldo sebesar ${rupiah(t.saldo)} disimpan sebagai kas untuk kegiatan warga berikutnya.`
     : `Terdapat kekurangan dana sebesar ${rupiah(Math.abs(t.saldo))} yang perlu ditutup melalui iuran tambahan atau kas warga.`;
   const noteLines = doc.splitTextToSize(saldoNote, pageW - margin*2);
   doc.text(noteLines, margin, y);
-  y += noteLines.length*13 + 20;
+  y += noteLines.length*10 + 14;
 
   // Tanda tangan
-  checkPage(200);
+  checkPage(150);
   const tempat = info.tempat || '.................';
   const tgl = info.tanggal ? fmtDate(info.tanggal) : '.................';
-  doc.setFont('helvetica','normal'); doc.setFontSize(10.5);
+  doc.setFont('helvetica','normal'); doc.setFontSize(9);
   doc.text(`${tempat}, ${tgl}`, pageW-margin, y, {align:'right'});
-  y += 26;
+  y += 18;
 
   // Blok Ketua Panitia & Bendahara
   const colL = margin+40, colR = pageW-margin-140;
   doc.text('Ketua Panitia', colL, y, {align:'center'});
   doc.text('Bendahara', colR, y, {align:'center'});
-  y += 55;
+  y += 34;
   doc.line(colL-70, y, colL+70, y);
   doc.line(colR-70, y, colR+70, y);
-  y += 16;
+  y += 12;
   doc.setFont('helvetica','bold');
   doc.text(info.ketua || '(...........................)', colL, y, {align:'center'});
   doc.text(info.bendahara || '(...........................)', colR, y, {align:'center'});
-  y += 40;
+  y += 22;
 
   // Blok "Mengetahui" - Ketua RT/RW (saksi/mengetahui, di tengah, di bawah)
-  checkPage(140);
-  doc.setFont('helvetica','normal'); doc.setFontSize(10.5);
+  checkPage(80);
+  doc.setFont('helvetica','normal'); doc.setFontSize(9);
   const centerX = pageW/2;
   doc.text('Mengetahui,', centerX, y, {align:'center'});
-  y += 14;
+  y += 11;
   doc.text('Ketua RT/RW', centerX, y, {align:'center'});
-  y += 55;
+  y += 34;
   doc.line(centerX-70, y, centerX+70, y);
-  y += 16;
+  y += 12;
   doc.setFont('helvetica','bold');
   doc.text(info.ketuaRt || '(...........................)', centerX, y, {align:'center'});
 
   function checkPage(need){
-    need = need || 200;
-    if(y + need > doc.internal.pageSize.getHeight()-40){
-      doc.addPage(); y = 56;
+    need = need || 100;
+    if(y + need > doc.internal.pageSize.getHeight()-30){
+      doc.addPage(); y = 40;
     }
   }
 
